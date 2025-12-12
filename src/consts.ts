@@ -12,40 +12,23 @@ export const SITE: Site = {
 }
 
 export const NAV_LINKS = [
-  {
-    href: '/',
-    label: 'Home',
-  },
-  {
-    href: '/blog',
-    label: 'Blog',
-  },
-  {
-    href: '/about',
-    label: 'About',
-  },
+  { href: '/', label: 'Home' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/about', label: 'About' },
 ]
 
 export const SOCIAL_LINKS: SocialLink[] = [
-  {
-    href: 'https://twitter.com/enscry',
-    label: 'Twitter',
-  },
-  {
-    href: '/blog',
-    label: 'Newspaper',
-  },
-  {
-    href: 'https://t.me/usernamekamu',
-    label: 'Telegram', // penting: harus sama dengan ICON_MAP key
-  },
+  { href: 'https://twitter.com/enscry', label: 'Twitter' },
+  { href: '/blog', label: 'Newspaper' },
+  { href: 'https://t.me/usernamekamu', label: 'Telegram' },
+  { href: 'https://pump.fun', label: 'Pumpfun' },
 ]
 
-// ICON_MAP final
 export const ICON_MAP: IconMap = {
   Website: 'lucide:globe',
   LinkedIn: 'lucide:linkedin',
   Twitter: 'lucide:twitter',
   Newspaper: 'lucide:newspaper',
-  Telegram: 'mdi:telegram', // ← FIX: dijamin muncul
+  Telegram: 'mdi:telegram',
+  Pumpfun: 'local:pumpfun', // ⬅️ mengambil ikon dari src/icons/pumpfun.svg
 }
