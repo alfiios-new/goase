@@ -1,43 +1,28 @@
-import { type IconType } from 'react-icons/lib'
-import {
-  SiAstro,
-  SiC,
-  SiCplusplus,
-  // SiCsharp,
-  SiCss3,
-  SiFigma,
-  SiHtml5,
-  SiJavascript,
-  SiJson,
-  SiLatex,
-  SiMarkdown,
-  SiMdx,
-  SiPython,
-  SiTypescript,
-  SiYaml,
-  SiJupyter,
-} from 'react-icons/si'
+import React from 'react'
 
-export const languageIcons: { [key: string]: IconType } = {
-  astro: SiAstro,
-  html: SiHtml5,
-  css: SiCss3,
-  javascript: SiJavascript,
-  python: SiPython,
-  c: SiC,
-  'c++': SiCplusplus,
-  // 'c#': SiCsharp,
-  typescript: SiTypescript,
-  markdown: SiMarkdown,
-  mdx: SiMdx,
-  json: SiJson,
-  yaml: SiYaml,
-  tex: SiLatex,
-  figma: SiFigma,
-  'jupyter notebook': SiJupyter,
+const ICONS: Record<string, string> = {
+  openai: '/static/bento/openai.svg',
+  claude: '/static/bento/claude.svg',
+  gemini: '/static/bento/gemini.svg',
+  grok: '/static/bento/grok.svg',
+  deepseek: '/static/bento/deepseek.svg',
 }
 
-export const getLanguageIcon = (language: string): React.ReactNode | null => {
-  const Icon = languageIcons[language]
-  return Icon ? <Icon /> : null
+export function getLanguageIcon(
+  name: string,
+  size = 18,
+): React.ReactNode | null {
+  const src = ICONS[name.toLowerCase()]
+  if (!src) return null
+
+  return (
+    <img
+      src={src}
+      width={size}
+      height={size}
+      alt={name}
+      className="object-contain invert brightness-200"
+      draggable={false}
+    />
+  )
 }
