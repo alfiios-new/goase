@@ -67,15 +67,18 @@ const StatusIndicator = memo<{ status: LanyardData['discord_status'] }>(
   },
 )
 
+/* =========================
+   HANYA DIHILANGKAN SEPIA
+   ========================= */
 const DecorativeBadges = memo(() => {
   const badgeStyles = useMemo(
     () => [
-      'grayscale size-3 rounded-full bg-purple-200/75 sepia-50',
-      'grayscale size-3 bg-violet-200/75 sepia-50 rounded-xs',
-      'grayscale size-3 rounded-xs bg-emerald-200/75 sepia-50',
-      'grayscale size-3 bg-fuchsia-200/75 sepia-50',
-      'grayscale size-3 rounded-full bg-teal-200/75 sepia-50',
-      'grayscale size-3 rounded-full bg-transparent ring-2 ring-sky-200/75 sepia-50 ring-inset',
+      'grayscale size-3 rounded-full bg-purple-200/75',
+      'grayscale size-3 bg-violet-200/75 rounded-xs',
+      'grayscale size-3 rounded-xs bg-emerald-200/75',
+      'grayscale size-3 bg-fuchsia-200/75',
+      'grayscale size-3 rounded-full bg-teal-200/75',
+      'grayscale size-3 rounded-full bg-transparent ring-2 ring-sky-200/75 ring-inset',
     ],
     [],
   )
@@ -123,7 +126,7 @@ const AvatarSection = memo<{
         src="/static/bento/avatar.jpg"
         alt="Avatar"
         fallback="e"
-        className="-mt-12 aspect-square grayscale sepia-50 size-16 rounded-full sm:-mt-[4.5rem] sm:size-24"
+        className="-mt-12 aspect-square grayscale size-16 rounded-full sm:-mt-[4.5rem] sm:size-24"
       />
       <div
         className="absolute inset-0 -mt-12 aspect-square size-16 rounded-full bg-cover bg-center bg-no-repeat opacity-0 transition-opacity duration-200 group-hover/discord:opacity-100 sm:-mt-[4.5rem] sm:size-24 sm:bg-[url('/static/bento/avatar-foreground.png')]"
@@ -195,16 +198,16 @@ const ActivityDisplay = memo<{
       <div className="relative aspect-square h-full max-h-12 shrink-0 sm:max-h-16">
         <div
           style={{ backgroundImage: `url('${activityImageUrl}')` }}
-          className="absolute inset-0 bg-contain bg-center bg-no-repeat grayscale sepia-50"
+          className="absolute inset-0 bg-contain bg-center bg-no-repeat grayscale"
         />
         {smallImageUrl && (
-          <div className="absolute -right-1 -bottom-1 overflow-hidden rounded-full border-2 border-[#26231f] sm:-right-2 sm:-bottom-2 sm:border-4">
+          <div className="absolute -right-1 -bottom-1 overflow-hidden rounded-full border-2 border-border sm:-right-2 sm:-bottom-2 sm:border-4">
             <img
               src={smallImageUrl}
               alt="Application Icon"
               width={16}
               height={16}
-              className="grayscale sepia-50 sm:h-6 sm:w-6"
+              className="grayscale sm:h-6 sm:w-6"
             />
           </div>
         )}
