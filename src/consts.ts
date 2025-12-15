@@ -18,7 +18,7 @@ export const NAV_LINKS = [
 ]
 
 export const SOCIAL_LINKS: SocialLink[] = [
-  { href: 'https://twitter.com/enscry', label: 'Twitter' },
+  { href: 'https://x.com/arcofgrisaille', label: 'Twitter' },
   { href: '/blog', label: 'Newspaper' },
   { href: 'https://t.me/usernamekamu', label: 'Telegram' },
   { href: 'https://pump.fun', label: 'Pumpfun' },
