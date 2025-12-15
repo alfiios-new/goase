@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState, useRef } from 'react'
 import { FaSpotify } from 'react-icons/fa'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -9,7 +11,6 @@ interface Track {
   album: { '#text': string }
   image: { '#text': string }[]
   url: string
-  '@attr'?: { nowplaying: string }
 }
 
 interface CachedData {
@@ -18,92 +19,68 @@ interface CachedData {
 }
 
 const CACHE_KEY = 'spotify-presence-cache'
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
-const RETRY_DELAY = 2000 // 2 seconds
+const CACHE_DURATION = 5 * 60 * 1000
+const RETRY_DELAY = 2000
 const MAX_RETRIES = 3
 
 const SpotifyPresence = () => {
   const [displayData, setDisplayData] = useState<Track | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
   const retryCountRef = useRef(0)
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const getCachedData = (): Track | null => {
     try {
       const cached = localStorage.getItem(CACHE_KEY)
-      if (cached) {
-        const parsedCache: CachedData = JSON.parse(cached)
-        const isExpired = Date.now() - parsedCache.timestamp > CACHE_DURATION
-        if (!isExpired) {
-          return parsedCache.track
-        }
+      if (!cached) return null
+      const parsed: CachedData = JSON.parse(cached)
+      if (Date.now() - parsed.timestamp < CACHE_DURATION) {
+        return parsed.track
       }
-    } catch (error) {
-      console.warn('Failed to parse cached data:', error)
+    } catch {
       localStorage.removeItem(CACHE_KEY)
     }
     return null
   }
 
   const setCachedData = (track: Track) => {
-    try {
-      const cacheData: CachedData = {
-        track,
-        timestamp: Date.now(),
-      }
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
-    } catch (error) {
-      console.warn('Failed to cache data:', error)
-    }
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ track, timestamp: Date.now() }),
+    )
   }
 
-  const fetchWithRetry = async (retryCount = 0): Promise<void> => {
+  const fetchWithRetry = async (retry = 0) => {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      const timeout = setTimeout(() => controller.abort(), 10000)
 
-      const response = await fetch(
+      const res = await fetch(
         'https://lastfm-last-played.biancarosa.com.br/enscribe/latest-song',
-        {
-          signal: controller.signal,
-          headers: {
-            'Cache-Control': 'no-cache',
-          },
-        },
+        { signal: controller.signal, cache: 'no-store' },
       )
 
-      clearTimeout(timeoutId)
+      clearTimeout(timeout)
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
+      if (!res.ok) throw new Error('Fetch failed')
 
-      const data = await response.json()
+      const json = await res.json()
+      if (!json.track) throw new Error('No track')
 
-      if (data.track) {
-        setDisplayData(data.track)
-        setCachedData(data.track)
-        setError(null)
-        retryCountRef.current = 0
-      } else {
-        throw new Error('No track data received')
-      }
-    } catch (fetchError) {
-      console.error(`Fetch attempt ${retryCount + 1} failed:`, fetchError)
-
-      if (retryCount < MAX_RETRIES) {
-        retryCountRef.current = retryCount + 1
-
+      setDisplayData(json.track)
+      setCachedData(json.track)
+      setError(null)
+      retryCountRef.current = 0
+    } catch {
+      if (retry < MAX_RETRIES) {
         fetchTimeoutRef.current = setTimeout(
-          () => {
-            fetchWithRetry(retryCount + 1)
-          },
-          RETRY_DELAY * (retryCount + 1),
+          () => fetchWithRetry(retry + 1),
+          RETRY_DELAY * (retry + 1),
         )
       } else {
         setError('Failed to load music data')
-        retryCountRef.current = 0
       }
     } finally {
       setIsLoading(false)
@@ -111,116 +88,74 @@ const SpotifyPresence = () => {
   }
 
   useEffect(() => {
-    const cachedTrack = getCachedData()
-    if (cachedTrack) {
-      setDisplayData(cachedTrack)
+    const cached = getCachedData()
+    if (cached) {
+      setDisplayData(cached)
       setIsLoading(false)
-      setError(null)
-
-      fetchWithRetry().catch(() => {})
+      fetchWithRetry()
     } else {
       fetchWithRetry()
     }
 
     return () => {
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current)
-      }
+      if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current)
     }
   }, [])
 
   if (isLoading && !displayData) {
-    return (
-      <div className="relative flex h-full w-full flex-col justify-between p-6">
-        <Skeleton className="mb-2 size-[60%]" />
-        <div className="flex min-w-0 flex-1 flex-col justify-end overflow-hidden">
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-4 w-36" />
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-            <Skeleton className="h-3 w-2/3" />
-          </div>
-        </div>
-        <div className="text-foreground absolute top-0 right-0 m-3">
-          <FaSpotify size={56} />
-        </div>
-        <Skeleton className="absolute right-0 bottom-0 m-3 h-10 w-10 rounded-full" />
-      </div>
-    )
+    return <Skeleton className="size-full" />
   }
 
   if (!displayData) {
     return (
-      <div className="relative flex h-full w-full flex-col justify-between p-6">
-        <div className="flex h-full items-center justify-center">
-          <div className="text-center">
-            <FaSpotify
-              size={48}
-              className="text-muted-foreground mx-auto mb-4"
-            />
-            <p className="text-muted-foreground text-sm">
-              No music data available
-            </p>
-          </div>
-        </div>
-        <div className="text-foreground absolute top-0 right-0 m-3">
-          <FaSpotify size={56} />
-        </div>
+      <div className="flex size-full items-center justify-center text-muted-foreground">
+        No signal detected
       </div>
     )
   }
 
-  const { name: song, artist, album, image, url } = displayData
+  const { name, artist, album, image, url } = displayData
 
   return (
     <>
-      <div className="relative flex size-full flex-col justify-between gap-4 p-6">
+      <div className="relative flex size-full flex-col justify-between p-6">
         <div
-          className="aspect-square min-h-0 max-w-[60%] flex-shrink border bg-cover bg-center grayscale sepia-50"
-          style={{
-            backgroundImage: `url(${image[3]['#text']})`,
-          }}
-          role="img"
-          aria-label="Album art"
+          className="aspect-square max-w-[60%] bg-cover bg-center grayscale"
+          style={{ backgroundImage: `url(${image[3]['#text']})` }}
         />
-        <div className="flex min-h-0 flex-shrink-0 flex-col justify-end">
-          <div className="mr-8 flex flex-col">
-            <span className="mb-2 flex items-center gap-2">
-              <AudioLines size={16} className="text-primary" />
-              <span className="text-primary text-sm">
-                {displayData['@attr']?.nowplaying === 'true'
-                  ? 'Now playing...'
-                  : 'Last played...'}
-              </span>
-            </span>
-            <span className="text-md mb-2 line-clamp-2 leading-tight font-medium">
-              {song}
-            </span>
-            <span className="text-muted-foreground line-clamp-1 text-xs">
-              <span className="text-muted-foreground">by</span>{' '}
-              {artist['#text']}
-            </span>
-            <span className="text-muted-foreground line-clamp-1 text-xs">
-              <span className="text-muted-foreground">on</span> {album['#text']}
-            </span>
+
+        <div className="mt-4">
+          <span className="mb-2 flex items-center gap-2 text-primary text-sm">
+            <AudioLines size={14} />
+            LLM listening…
+          </span>
+
+          <div className="text-md mb-1 font-medium line-clamp-2">
+            {name}
+          </div>
+
+          <div className="text-xs text-muted-foreground line-clamp-1">
+            source: {artist['#text']}
+          </div>
+
+          <div className="text-xs text-muted-foreground line-clamp-1">
+            context: {album['#text']}
           </div>
         </div>
       </div>
-      <div className="text-primary absolute top-0 right-0 m-3">
-        <FaSpotify size={56} />
+
+      <div className="absolute top-0 right-0 m-3 text-primary">
+        <FaSpotify size={52} />
       </div>
+
       <a
         href={url}
-        aria-label="View on last.fm"
-        title="View on last.fm"
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-border/50 text-primary ring-ring group/spotify-link absolute end-0 bottom-0 m-3 rounded-full p-3 transition-[box-shadow] duration-300 hover:ring-2 focus-visible:ring-2"
+        className="absolute bottom-0 right-0 m-3 rounded-full bg-border/50 p-3 hover:ring-2"
+        title="Audio source"
       >
-        <MoveUpRight
-          size={16}
-          className="transition-transform duration-300 group-hover/spotify-link:rotate-12"
-        />
+        <MoveUpRight size={14} />
       </a>
     </>
   )

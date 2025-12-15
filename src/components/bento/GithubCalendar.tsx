@@ -15,7 +15,7 @@ const AGENTS = [
 
 const WIDTH = 50
 const HEIGHT = 14
-const COLOR = '#E9D3B6'
+const COLOR = '#FFFFFF'  // Changed to white
 
 type Message = {
   from: number
